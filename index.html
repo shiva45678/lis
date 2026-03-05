@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newtons AI | Smart Lab Middleware & Analyzer Integration</title>
+    <meta name="description" content="Connect your lab analyzers directly to any HMS or LIS with Newtons AI Middleware. Zero manual entry, automated lab reports, and bi-directional interfacing.">
+    <meta name="keywords" content="Lab Middleware, LIS Integration, HMS Interfacing, Sysmex integration, Dirui middleware, Mindray interface, Analyzer software, Medical lab AI">
+    <meta name="author" content="Newtons AI">
+    <meta property="og:title" content="Newtons AI | Lab Middleware & Interfacing">
+    <meta property="og:description" content="Automate your diagnostic lab. Connect any analyzer directly to your HMS. One-time payment.">
+    <meta property="og:image" content="logo.png">
+    <meta property="og:url" content="https://newtons.in">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Newtons AI">
+    <meta name="twitter:card" content="summary_large_image">
+    
+    <link rel="icon" href="logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@500;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --surface-2: #f1f5f9;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --heading: #0f172a;
+            --border: #e2e8f0;
+            --primary: #2563eb;
+            --secondary: #059669;
+            --accent-purple: #7c3aed;
+            --accent-purple-light: #ede9fe;
+            --accent-orange: #ea580c;
+            --accent-orange-light: #fff7ed;
+            --primary-rgb: 37, 99, 235;
+            --secondary-rgb: 5, 150, 105;
+            --purple-rgb: 124, 58, 237;
+            --orange-rgb: 234, 88, 12;
+            --shadow-color: 226, 232, 240;
+            --glow-purple: rgba(124, 58, 237, 0.15);
+            --glow-orange: rgba(234, 88, 12, 0.15);
+            --glow-primary: rgba(37, 99, 235, 0.15);
+            --glow-green: rgba(5, 150, 105, 0.15);
+            --radius-md: 14px;
+            --radius-lg: 22px;
+            --radius-xl: 28px;
+            --nav-height: 72px;
+            --container: 1200px;
+            --ease: cubic-bezier(0.25, 0.8, 0.25, 1);
+            --mobile-px: 0.6rem;
+        }
+
+        body.dark-theme {
+            --bg: #0a0e1a;
+            --surface: #111827;
+            --surface-2: #1e293b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --heading: #f8fafc;
+            --border: #1e293b;
+            --primary: #3b82f6;
+            --primary-rgb: 59, 130, 246;
+            --shadow-color: 0, 0, 0;
+            --accent-purple-light: rgba(124, 58, 237, 0.15);
+            --accent-orange-light: rgba(234, 88, 12, 0.15);
+            --glow-purple: rgba(124, 58, 237, 0.25);
+            --glow-orange: rgba(234, 88, 12, 0.25);
+            --glow-primary: rgba(59, 130, 246, 0.25);
+            --glow-green: rgba(5, 150, 105, 0.25);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-height) + 24px); }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            line-height: 1.7;
+            font-size: 16px;
+            transition: background 0.5s var(--ease), color 0.5s var(--ease);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4 { color: var(--heading); line-height: 1.15; font-weight: 800; }
+        h1 { font-size: clamp(2.5rem, 5vw, 4rem); letter-spacing: -0.03em; margin-bottom: 1rem; }
+        h2 { font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -0.02em; }
+        h3 { font-size: 1.35rem; letter-spacing: -0.01em; }
+        p { color: var(--text-muted); margin-bottom: 1rem; }
+        a { color: var(--primary); text-decoration: none; transition: all 0.3s var(--ease); }
+
+        .container { width: 100%; max-width: var(--container); margin: 0 auto; padding: 0 clamp(1.25rem, 5vw, 2.5rem); }
+        section { padding: clamp(5rem, 10vw, 8rem) 0; position: relative; }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+        body::before {
+            content: ''; position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: 9999; opacity: 0.4;
+        }
+        body.dark-theme::before { opacity: 0.15; }
+
+        /* ========== BUTTONS ========== */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.55rem;
+            padding: 0.85rem 1.8rem; border-radius: 50px; font-weight: 600; font-size: 1rem;
+            transition: all 0.35s var(--ease); cursor: pointer; border: 2px solid transparent;
+            position: relative; overflow: hidden; white-space: nowrap; letter-spacing: -0.01em;
+        }
+        .btn::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .btn:hover::before { opacity: 1; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-purple), #9333ea);
+            color: white; box-shadow: 0 4px 20px var(--glow-purple);
+        }
+        .btn-primary:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 30px var(--glow-purple); color: white; }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary), #0d9488);
+            color: white; box-shadow: 0 4px 20px var(--glow-green);
+        }
+        .btn-secondary:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 30px var(--glow-green); color: white; }
+
+        .btn-outline {
+            background: var(--surface); color: var(--text-main);
+            border: 1.5px solid var(--border); box-shadow: 0 2px 8px rgba(var(--shadow-color), 0.2);
+            font-size: 0.95rem; padding: 0.85rem 1.8rem;
+        }
+        body.dark-theme .btn-outline { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 16px var(--glow-primary); }
+
+        /* ========== HEADER ========== */
+        header {
+            position: fixed; top: 0; width: 100%; z-index: 1000; height: var(--nav-height);
+            background: rgba(248, 250, 252, 0.72); backdrop-filter: blur(20px) saturate(1.8);
+            -webkit-backdrop-filter: blur(20px) saturate(1.8);
+            border-bottom: 1px solid rgba(0,0,0,0.06); transition: all 0.4s var(--ease);
+        }
+        body.dark-theme header { background: rgba(10, 14, 26, 0.78); border-bottom-color: rgba(255,255,255,0.06); }
+        header.scrolled { box-shadow: 0 4px 30px rgba(var(--shadow-color), 0.12); }
+
+        .header-inner { display: flex; justify-content: space-between; align-items: center; height: 100%; }
+
+        .logo { font-size: 1.4rem; font-weight: 900; color: var(--primary); display: flex; align-items: center; gap: 10px; letter-spacing: -0.02em; }
+        .logo i { font-size: 1.6rem; color: var(--accent-purple); }
+
+        .nav-links { display: flex; gap: 0.3rem; list-style: none; }
+        .nav-links a {
+            font-weight: 500; color: var(--text-muted); font-size: 0.92rem;
+            padding: 0.5rem 1rem; border-radius: 10px; transition: all 0.25s var(--ease);
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--primary); background: rgba(var(--primary-rgb), 0.08); }
+
+        .header-actions { display: flex; gap: 0.5rem; align-items: center; }
+        .icon-btn {
+            background: transparent; border: none; color: var(--text-muted); font-size: 1.15rem;
+            cursor: pointer; padding: 10px; border-radius: 12px; transition: all 0.3s var(--ease);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .icon-btn:hover { background: rgba(var(--primary-rgb), 0.1); color: var(--primary); transform: scale(1.05); }
+        .mobile-toggle { display: none; }
+
+        /* ========== HERO ========== */
+        #hero {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            text-align: center; padding-top: var(--nav-height); position: relative; overflow: hidden;
+        }
+
+        .hero-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+        .hero-mesh {
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 50% 0%, rgba(var(--purple-rgb), 0.12) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 50% at 80% 50%, rgba(var(--primary-rgb), 0.08) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 60% at 20% 80%, rgba(var(--secondary-rgb), 0.08) 0%, transparent 70%);
+        }
+        body.dark-theme .hero-mesh {
+            background:
+                radial-gradient(ellipse 80% 60% at 50% 0%, rgba(var(--purple-rgb), 0.2) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 50% at 80% 50%, rgba(var(--primary-rgb), 0.12) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 60% at 20% 80%, rgba(var(--secondary-rgb), 0.1) 0%, transparent 70%);
+        }
+
+        .hero-grid-pattern {
+            position: absolute; inset: 0;
+            background-image: linear-gradient(rgba(var(--primary-rgb), 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--primary-rgb), 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+            -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+        }
+        body.dark-theme .hero-grid-pattern {
+            background-image: linear-gradient(rgba(255,255,255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255, 0.03) 1px, transparent 1px);
+        }
+
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(80px);
+            animation: orbFloat 20s infinite ease-in-out; will-change: transform;
+        }
+        .orb-1 { top: 10%; left: 15%; width: 350px; height: 350px; background: rgba(var(--purple-rgb), 0.15); }
+        .orb-2 { bottom: 15%; right: 10%; width: 300px; height: 300px; background: rgba(var(--primary-rgb), 0.12); animation-delay: -7s; }
+        .orb-3 { top: 50%; left: 60%; width: 250px; height: 250px; background: rgba(var(--secondary-rgb), 0.1); animation-delay: -14s; }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -20px) scale(1.05); }
+            50% { transform: translate(-20px, 15px) scale(0.95); }
+            75% { transform: translate(15px, 25px) scale(1.03); }
+        }
+
+        .hero-content { max-width: 800px; position: relative; z-index: 1; }
+        .hero-content p.subtitle { font-size: 1.15rem; margin: 0 auto 2.5rem auto; max-width: 600px; line-height: 1.6; }
+
+        .hero-cta-area { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+        
+        .hero-trust { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; }
+        .trust-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+        .trust-item i { font-size: 0.8rem; color: var(--secondary); }
+
+        /* ========== SECTION HEADERS ========== */
+        .section-header { text-align: center; max-width: 650px; margin: 0 auto 3.5rem; }
+        .section-badge {
+            display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px;
+            border-radius: 50px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.8px; margin-bottom: 1rem;
+        }
+        .section-badge.purple { background: var(--accent-purple-light); color: var(--accent-purple); }
+        .section-badge.green { background: rgba(var(--secondary-rgb), 0.1); color: var(--secondary); }
+        .section-badge.neutral { background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); }
+        .section-header h2 { margin-bottom: 0.75rem; }
+        .section-header p { font-size: 1.1rem; margin: 0; }
+
+        /* ========== CARDS ========== */
+        .split-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: stretch; }
+        .split-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-xl); padding: 2.5rem; position: relative;
+            transition: all 0.4s var(--ease); display: flex; flex-direction: column; overflow: hidden;
+        }
+        .split-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        }
+        .split-card:hover { transform: translateY(-8px); box-shadow: 0 20px 60px rgba(var(--shadow-color), 0.2); }
+        
+        .split-card.primary-card::before { background: linear-gradient(90deg, var(--accent-purple), #a78bfa); }
+        .split-card.primary-card:hover { box-shadow: 0 20px 60px var(--glow-purple); }
+        
+        .split-card.secondary-card::before { background: linear-gradient(90deg, var(--accent-orange), #f97316); }
+        .split-card.secondary-card:hover { box-shadow: 0 20px 60px var(--glow-orange); }
+
+        .split-card::after {
+            content: ''; position: absolute; inset: 0; border-radius: var(--radius-xl);
+            opacity: 0; transition: opacity 0.4s; pointer-events: none;
+        }
+        .split-card.primary-card::after { background: radial-gradient(circle at 50% 0%, var(--glow-purple), transparent 70%); }
+        .split-card.secondary-card::after { background: radial-gradient(circle at 50% 0%, var(--glow-orange), transparent 70%); }
+        .split-card:hover::after { opacity: 1; }
+
+        .card-icon {
+            width: 56px; height: 56px; border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; margin-bottom: 1.25rem; position: relative; z-index: 1;
+        }
+        .split-card.primary-card .card-icon { background: var(--accent-purple-light); color: var(--accent-purple); }
+        .split-card.secondary-card .card-icon { background: var(--accent-orange-light); color: var(--accent-orange); }
+
+        .split-card h3 { font-size: 1.6rem; margin-bottom: 0.4rem; position: relative; z-index: 1; }
+        .split-card.primary-card h3 { color: var(--accent-purple); }
+        .split-card.secondary-card h3 { color: var(--accent-orange); }
+        .split-card .sub-head { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.75rem; position: relative; z-index: 1; }
+
+        .feature-list { list-style: none; margin-bottom: 2rem; flex-grow: 1; text-align: left; position: relative; z-index: 1; }
+        .feature-list li {
+            display: flex; align-items: flex-start; gap: 14px; margin-bottom: 1.2rem;
+            font-size: 0.92rem; color: var(--text-muted); line-height: 1.5;
+        }
+        .feature-list li strong { color: var(--heading); font-weight: 600; display: block; margin-bottom: 1px; }
+        .feature-list li .check-icon {
+            width: 22px; height: 22px; min-width: 22px; border-radius: 7px;
+            display: flex; align-items: center; justify-content: center; font-size: 0.7rem; margin-top: 2px;
+        }
+        .split-card.primary-card .check-icon { background: var(--accent-purple-light); color: var(--accent-purple); }
+        .split-card.secondary-card .check-icon { background: var(--accent-orange-light); color: var(--accent-orange); }
+
+        .bg-surface { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+        /* ========== TABS & GRID ========== */
+        .tab-nav {
+            display: flex; justify-content: center; margin-bottom: 2.5rem;
+            background: var(--surface-2); padding: 5px; border-radius: 16px;
+            width: fit-content; margin-left: auto; margin-right: auto; border: 1px solid var(--border);
+        }
+        .tab-btn {
+            background: transparent; color: var(--text-muted); border: none;
+            padding: 0.65rem 1.5rem; border-radius: 12px; font-weight: 600; font-size: 0.92rem;
+            cursor: pointer; transition: all 0.3s var(--ease); font-family: inherit;
+        }
+        .tab-btn.active { background: var(--surface); color: var(--heading); box-shadow: 0 2px 8px rgba(var(--shadow-color), 0.15); }
+        .tab-btn:hover:not(.active) { color: var(--heading); }
+
+        .tab-panel { display: none; animation: fadeSlide 0.5s var(--ease); }
+        .tab-panel.active { display: block; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: 2rem; transition: all 0.4s var(--ease);
+            display: flex; flex-direction: column; position: relative; overflow: hidden;
+        }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(var(--shadow-color), 0.15); border-color: rgba(var(--primary-rgb), 0.15); }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+
+        .card h4 { font-size: 1.15rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 8px; }
+        .card h4 .step-num {
+            display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;
+            border-radius: 8px; font-size: 0.8rem; font-weight: 800; font-family: 'JetBrains Mono', monospace;
+        }
+        .card p { font-size: 0.95rem; flex-grow: 1; }
+
+        .card.purple-top::before { background: linear-gradient(90deg, var(--accent-purple), #a78bfa); }
+        .card.purple-top .step-num { background: var(--accent-purple-light); color: var(--accent-purple); }
+        .card.orange-top::before { background: linear-gradient(90deg, var(--accent-orange), #f97316); }
+        .card.orange-top .step-num { background: var(--accent-orange-light); color: var(--accent-orange); }
+
+        /* ========== BRANDS GRID ========== */
+        .brands-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1.5rem; max-width: 900px; margin: 0 auto; text-align: center;
+        }
+        .brand-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 1.5rem 1rem;
+            transition: all 0.3s var(--ease); font-weight: 600; font-size: 1.1rem;
+            color: var(--text-muted); display: flex; align-items: center; justify-content: center;
+        }
+        .brand-card:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-3px); box-shadow: 0 10px 25px var(--glow-primary); }
+        .brand-card.special-card {
+            grid-column: 1 / -1; background: var(--surface-2); border: 2px dashed var(--border);
+            color: var(--text-main); font-size: 1.05rem;
+        }
+        .brand-card.special-card:hover { border-color: var(--primary); background: rgba(var(--primary-rgb), 0.05); }
+
+        /* ========== PRICING ========== */
+        .pricing-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 2rem; max-width: 780px; margin: 0 auto;
+        }
+        .price-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-xl); padding: 2.5rem; text-align: center;
+            display: flex; flex-direction: column; transition: all 0.4s var(--ease); position: relative; overflow: hidden;
+        }
+        .price-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+        .price-card:hover { transform: translateY(-6px); box-shadow: 0 20px 50px rgba(var(--shadow-color), 0.18); }
+
+        .price-card.purple::before { background: linear-gradient(90deg, var(--accent-purple), #a78bfa); }
+        .price-card.purple:hover { box-shadow: 0 20px 50px var(--glow-purple); }
+        .price-card.orange::before { background: linear-gradient(90deg, var(--accent-orange), #f97316); }
+        .price-card.orange:hover { box-shadow: 0 20px 50px var(--glow-orange); }
+
+        .price-card h3 { font-size: 1.4rem; margin-bottom: 0.5rem; margin-top: 1rem;}
+        .price-card.purple h3 { color: var(--accent-purple); }
+        .price-card.orange h3 { color: var(--accent-orange); }
+        .price-card .price-desc { font-size: 0.9rem; margin-bottom: 1.75rem; }
+
+        .price-block { margin-bottom: 0.5rem; display: flex; flex-direction: column; align-items: center; }
+        .price-amount {
+            font-size: 2.5rem; font-weight: 900; color: var(--heading);
+            font-family: 'JetBrains Mono', monospace; letter-spacing: -0.03em; line-height: 1;
+        }
+        .price-period { font-size: 0.95rem; color: var(--text-muted); font-weight: 600; margin-top: 6px; }
+        .price-divider { height: 1px; background: var(--border); margin: 1.75rem 0; }
+        .price-features { list-style: none; text-align: left; margin-bottom: 2rem; flex-grow: 1; }
+        .price-features li { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.7rem; }
+        .price-features li i { font-size: 0.8rem; }
+        .price-card.purple .price-features i { color: var(--accent-purple); }
+        .price-card.orange .price-features i { color: var(--accent-orange); }
+
+        /* ========== CONTACT / CTA ========== */
+        #contact { position: relative; overflow: hidden; }
+        .contact-bg {
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse at center, rgba(var(--primary-rgb), 0.04) 0%, transparent 70%);
+        }
+        body.dark-theme .contact-bg { background: radial-gradient(ellipse at center, rgba(var(--primary-rgb), 0.08) 0%, transparent 70%); }
+        .contact-content { position: relative; z-index: 1; text-align: center; }
+        
+        .contact-box {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-xl); padding: 3rem 2rem;
+            max-width: 600px; margin: 0 auto; box-shadow: 0 10px 40px rgba(var(--shadow-color), 0.15);
+        }
+        .contact-avatar {
+            width: 80px; height: 80px; background: var(--surface-2); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: var(--primary);
+            margin: 0 auto 1.5rem; border: 2px solid var(--border);
+        }
+        .contact-box h3 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+        .contact-box p { font-size: 1.05rem; margin-bottom: 2rem; }
+        
+        .contact-actions { display: flex; flex-direction: column; gap: 1rem; }
+        .contact-btn {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            padding: 1rem; border-radius: 14px; font-weight: 600; font-size: 1.05rem;
+            transition: all 0.3s; text-decoration: none; border: 1px solid var(--border);
+        }
+        .contact-btn.whatsapp { background: #25D366; color: white; border-color: #25D366; }
+        .contact-btn.whatsapp:hover { background: #1ebe57; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(37, 211, 102, 0.3); }
+        .contact-btn.phone { background: var(--primary); color: white; border-color: var(--primary); }
+        .contact-btn.phone:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 8px 20px var(--glow-primary); }
+        .contact-btn.email { background: var(--surface-2); color: var(--text-main); }
+        .contact-btn.email:hover { background: var(--border); transform: translateY(-2px); }
+
+        /* ========== FOOTER ========== */
+        footer { background: #0f172a; color: #94a3b8; padding: 4rem 0 2rem; }
+        body.dark-theme footer { background: #050810; }
+        .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 3rem; }
+        .footer-brand h3 { color: white; font-size: 1.5rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+        .footer-brand i { color: var(--accent-purple); }
+        .footer-brand p { color: #64748b; font-size: 0.95rem; line-height: 1.7; }
+        .footer-col h4 {
+            color: #e2e8f0; font-size: 0.9rem; text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 1.25rem; font-weight: 700;
+        }
+        .footer-links { list-style: none; }
+        .footer-links li { margin-bottom: 0.75rem; }
+        .footer-links a { color: #64748b; font-size: 0.92rem; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; }
+        .footer-links a:hover { color: white; transform: translateX(4px); }
+        .footer-bottom { text-align: center; padding-top: 2.5rem; margin-top: 3rem; border-top: 1px solid #1e293b; font-size: 0.85rem; color: #475569; }
+
+        /* ========== MOBILE NAV ========== */
+        .mobile-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.35s var(--ease);
+        }
+        .mobile-overlay.open { opacity: 1; pointer-events: auto; }
+        .mobile-nav {
+            position: fixed; top: 0; right: -320px; width: 300px; height: 100vh; height: 100dvh;
+            background: var(--surface); z-index: 1001; padding: 1.75rem;
+            transition: right 0.4s var(--ease); border-left: 1px solid var(--border);
+            overflow-y: auto; display: flex; flex-direction: column;
+        }
+        .mobile-nav.open { right: 0; }
+        .mobile-nav-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+        .mobile-nav-links { list-style: none; flex-grow: 1; }
+        .mobile-nav-links li { margin-bottom: 0.25rem; }
+        .mobile-nav-links a {
+            display: flex; align-items: center; gap: 12px; padding: 0.85rem 1rem; border-radius: 12px;
+            font-weight: 600; font-size: 0.95rem; color: var(--text-main); transition: all 0.25s var(--ease);
+        }
+        .mobile-nav-links a:hover { background: rgba(var(--primary-rgb), 0.08); }
+        .mobile-nav-links a i { width: 20px; text-align: center; font-size: 1rem; }
+        .mobile-nav-links .purple { color: var(--accent-purple); }
+        .mobile-nav-links .orange { color: var(--accent-orange); }
+        .mobile-nav-links .green { color: var(--secondary); }
+        .mobile-nav-links .divider { height: 1px; background: var(--border); margin: 0.75rem 0; }
+        .mobile-nav-footer { padding-top: 1.25rem; border-top: 1px solid var(--border); }
+        .mobile-theme-toggle {
+            display: flex; align-items: center; gap: 10px; padding: 0.85rem 1rem; border-radius: 12px;
+            font-weight: 600; font-size: 0.95rem; color: var(--text-muted); cursor: pointer; background: none; border: none; width: 100%;
+            transition: all 0.25s; font-family: inherit;
+        }
+        .mobile-theme-toggle:hover { background: rgba(var(--primary-rgb), 0.08); color: var(--heading); }
+
+        /* ========== SCROLL REVEAL ========== */
+        .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1024px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 768px) {
+            .container { padding: 0 var(--mobile-px); }
+            section { padding: clamp(3rem, 8vw, 5rem) 0; }
+            .nav-links { display: none; }
+            .header-actions .theme-toggle { display: none; }
+            .mobile-toggle { display: flex; }
+            #hero { min-height: 100vh; min-height: 100dvh; align-items: flex-end; padding-bottom: env(safe-area-inset-bottom, 2rem); }
+            .hero-content { padding-bottom: 2rem; }
+            h1 { font-size: 2.4rem; }
+            .hero-cta-area { flex-direction: column; width: 100%; gap: 0.75rem; }
+            .hero-cta-area .btn { width: 100%; }
+            .split-grid { grid-template-columns: 1fr; gap: 1rem; }
+            .split-card { padding: 1.5rem 1rem; border-radius: var(--radius-lg); }
+            .tab-nav { width: 100%; border-radius: 12px; }
+            .tab-btn { flex: 1; font-size: 0.8rem; padding: 0.55rem 0.6rem; text-align: center; }
+            .grid, .pricing-grid { grid-template-columns: 1fr; gap: 1rem; }
+            .card { padding: 1.5rem 1rem; border-radius: var(--radius-md); }
+            .price-card { padding: 1.75rem 1.25rem; border-radius: var(--radius-lg); }
+            .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+            .contact-box { padding: 2rem 1.25rem; border-radius: var(--radius-lg); }
+        }
+    </style>
+</head>
+<body>
+
+    <header id="main-header">
+        <div class="container header-inner">
+            <a href="#" class="logo">
+                <i class="fa-solid fa-network-wired"></i> Newtons AI
+            </a>
+            <ul class="nav-links">
+                <li><a href="#hero" class="active">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#workflow">How it Works</a></li>
+                <li><a href="#brands">Compatibility</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="header-actions">
+                <button class="icon-btn theme-toggle" aria-label="Toggle theme"><i class="fa-solid fa-moon"></i></button>
+                <button class="icon-btn mobile-toggle" aria-label="Open menu"><i class="fa-solid fa-bars"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="mobile-overlay"></div>
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+        <div class="mobile-nav-header">
+            <span class="logo" style="font-size:1.2rem;">
+                <i class="fa-solid fa-network-wired"></i> Newtons AI
+            </span>
+            <button class="icon-btn close-menu" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <ul class="mobile-nav-links">
+            <li><a href="#features" class="purple"><i class="fa-solid fa-cubes"></i> Features</a></li>
+            <li><a href="#workflow" class="orange"><i class="fa-solid fa-microscope"></i> Workflows</a></li>
+            <li><a href="#brands" class="green"><i class="fa-solid fa-list-check"></i> Supported Analyzers</a></li>
+            <li class="divider"></li>
+            <li><a href="#pricing"><i class="fa-solid fa-tag"></i> Pricing</a></li>
+            <li><a href="#contact"><i class="fa-solid fa-phone"></i> Contact Us</a></li>
+        </ul>
+        <div class="mobile-nav-footer">
+            <button class="mobile-theme-toggle" id="mobile-theme-toggle">
+                <i class="fa-solid fa-circle-half-stroke"></i> Toggle Theme
+            </button>
+        </div>
+    </nav>
+
+    <section id="hero">
+        <div class="hero-bg">
+            <div class="hero-mesh"></div>
+            <div class="hero-grid-pattern"></div>
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            <div class="orb orb-3"></div>
+        </div>
+
+        <div class="container hero-content reveal">
+            <h1>Smart Lab Middleware & LIS Integration</h1>
+            <p class="subtitle">Seamlessly connect your lab analyzers directly to your HMS or LIS. Automate data flow, eliminate manual entry errors, and generate faster reports with a simple one-time payment.</p>
+
+            <div class="hero-cta-area">
+                <a href="tel:+916363111328" class="btn btn-primary">
+                    <i class="fa-solid fa-phone"></i> Call +91 6363111328
+                </a>
+                <a href="#workflow" class="btn btn-outline">
+                    <i class="fa-solid fa-cogs"></i> How it Works
+                </a>
+            </div>
+
+            <div class="hero-trust">
+                <span class="trust-item"><i class="fa-solid fa-check-double"></i> Zero Manual Errors</span>
+                <span class="trust-item"><i class="fa-solid fa-infinity"></i> Lifetime License</span>
+                <span class="trust-item"><i class="fa-solid fa-server"></i> HL7 & ASTM Compliant</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="features">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-badge neutral"><i class="fa-solid fa-flask"></i> Core Features</span>
+                <h2>Automate Your Laboratory</h2>
+                <p>Designed to sit perfectly between your lab equipment and your Hospital Management System.</p>
+            </div>
+
+            <div class="split-grid">
+                <div class="split-card primary-card reveal reveal-delay-1">
+                    <div class="card-icon"><i class="fa-solid fa-arrows-left-right"></i></div>
+                    <h3>Bi-Directional Sync</h3>
+                    <p class="sub-head">Full read/write capabilities between HMS and Analyzers.</p>
+                    <ul class="feature-list">
+                        <li>
+                            <span class="check-icon"><i class="fa-solid fa-check"></i></span>
+                            <div><strong>Auto Worklists</strong>Push patient test requests directly to the machine via barcodes.</div>
+                        </li>
+                        <li>
+                            <span class="check-icon"><i class="fa-solid fa-check"></i></span>
+                            <div><strong>Result Parsing</strong>Automatically capture results when the test finishes.</div>
+                        </li>
+                        <li>
+                            <span class="check-icon"><i class="fa-solid fa-check"></i></span>
+                            <div><strong>Flagging & Alerts</strong>Identify abnormal values before pushing to HMS.</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="split-card secondary-card reveal reveal-delay-2">
+                    <div class="card-icon"><i class="fa-solid fa-microchip"></i></div>
+                    <h3>Universal Compatibility</h3>
+                    <p class="sub-head">Connects to older serial machines and modern TCP/IP models.</p>
+                    <ul class="feature-list">
+                        <li>
+                            <span class="check-icon"><i class="fa-solid fa-check"></i></span>
+                            <div><strong>Protocol Engine</strong>Natively supports ASTM, HL7, and custom proprietary formats.</div>
+                        </li>
+                        <li>
+                            <span class="check-icon"><i class="fa-solid fa-check"></i></span>
+                            <div><strong>Hardware Ready</strong>Works via RS-232, Serial-to-USB, or direct LAN/Network integration.</div>
+                        </li>
+                        <li>
+                            <span class="check-icon"><i class="fa-solid fa-check"></i></span>
+                            <div><strong>API First</strong>Easily pushes structured JSON/XML data to any modern web-based HMS.</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="workflow" class="bg-surface">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-badge green"><i class="fa-solid fa-compass"></i> Integration Flow</span>
+                <h2>How It Connects</h2>
+                <p>We support both simple output capturing and full closed-loop automation.</p>
+            </div>
+
+            <div class="tab-nav reveal">
+                <button class="tab-btn active" onclick="openTab(event, 'workflow-uni')">
+                    <i class="fa-solid fa-arrow-right" style="margin-right:4px;"></i> Uni-Directional
+                </button>
+                <button class="tab-btn" onclick="openTab(event, 'workflow-bi')">
+                    <i class="fa-solid fa-arrows-left-right" style="margin-right:4px;"></i> Bi-Directional
+                </button>
+            </div>
+
+            <div id="workflow-uni" class="tab-panel active">
+                <div class="grid">
+                    <div class="card purple-top reveal reveal-delay-1">
+                        <h4><span class="step-num">1</span> Sample Processing</h4>
+                        <p>Technician manually programs the analyzer or scans the barcode. The machine runs the required assay/test.</p>
+                    </div>
+                    <div class="card purple-top reveal reveal-delay-2">
+                        <h4><span class="step-num">2</span> Data Capture</h4>
+                        <p>Once complete, the analyzer transmits raw string data (via RS232 or TCP/IP). Our middleware listens and captures the packet.</p>
+                    </div>
+                    <div class="card purple-top reveal reveal-delay-3">
+                        <h4><span class="step-num">3</span> HMS Push</h4>
+                        <p>The software decodes the ASTM/HL7 string into structured parameters and pushes it to the patient's digital record in the HMS.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="workflow-bi" class="tab-panel">
+                <div class="grid">
+                    <div class="card orange-top reveal reveal-delay-1">
+                        <h4><span class="step-num">1</span> Order Request</h4>
+                        <p>Doctor prescribes a test in the HMS. The middleware automatically pushes a <strong>Work Order</strong> directly to the machine.</p>
+                    </div>
+                    <div class="card orange-top reveal reveal-delay-2">
+                        <h4><span class="step-num">2</span> Barcode Scan</h4>
+                        <p>Technician scans the sample barcode. The analyzer already knows which tests to run without manual data entry.</p>
+                    </div>
+                    <div class="card orange-top reveal reveal-delay-3">
+                        <h4><span class="step-num">3</span> Auto Validation</h4>
+                        <p>Results are sent back, checked for critical flags by the middleware, and posted instantly to the doctor's HMS dashboard.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="brands">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-badge purple"><i class="fa-solid fa-plug"></i> Compatibility</span>
+                <h2>Supported Analyzers</h2>
+                <p>We interface seamlessly with over 100+ diagnostic instruments globally, including top Western and Chinese manufacturers.</p>
+            </div>
+
+            <div class="brands-grid reveal reveal-delay-1">
+                <div class="brand-card">Sysmex</div>
+                <div class="brand-card">Dirui</div>
+                <div class="brand-card">Mindray</div>
+                <div class="brand-card">Rayto</div>
+                <div class="brand-card">Beckman Coulter</div>
+                <div class="brand-card">Roche</div>
+                <div class="brand-card">URIT</div>
+                <div class="brand-card">Erba Mannheim</div>
+                <div class="brand-card">Zybio</div>
+                <div class="brand-card">Siemens</div>
+                <div class="brand-card">Abbott</div>
+                <div class="brand-card">Snibe</div>
+                <div class="brand-card special-card">+ Over 100s of other Global & Chinese Brands</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="pricing" class="bg-surface">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-badge neutral"><i class="fa-solid fa-tag"></i> Pricing</span>
+                <h2>Simple One-Time License</h2>
+                <p>Say goodbye to monthly subscriptions. Pay once, use forever.</p>
+            </div>
+
+            <div class="pricing-grid">
+                <div class="price-card purple reveal reveal-delay-1">
+                    <h3>Basic Interfacing</h3>
+                    <p class="price-desc">Uni-directional sync for standard machines (Hematology / Biochemistry).</p>
+                    <div class="price-block">
+                        <span class="price-amount">₹14,999</span>
+                        <span class="price-period">/ machine (One-time)</span>
+                    </div>
+                    <div class="price-divider"></div>
+                    <ul class="price-features">
+                        <li><i class="fa-solid fa-check"></i> Standard Uni-Directional Sync</li>
+                        <li><i class="fa-solid fa-check"></i> LAN/Serial Data Capture</li>
+                        <li><i class="fa-solid fa-check"></i> Custom HMS API Push</li>
+                        <li><i class="fa-solid fa-check"></i> Remote Installation Included</li>
+                    </ul>
+                </div>
+
+                <div class="price-card orange reveal reveal-delay-2">
+                    <h3>Advanced LIS Sync</h3>
+                    <p class="price-desc">Bi-directional capabilities for Immunoassays & automated labs.</p>
+                    <div class="price-block">
+                        <span class="price-amount">₹24,999</span>
+                        <span class="price-period">/ machine (One-time)</span>
+                    </div>
+                    <div class="price-divider"></div>
+                    <ul class="price-features">
+                        <li><i class="fa-solid fa-check"></i> Full Bi-Directional Sync</li>
+                        <li><i class="fa-solid fa-check"></i> Automated Work Order Push</li>
+                        <li><i class="fa-solid fa-check"></i> Abnormal Value Flagging</li>
+                        <li><i class="fa-solid fa-check"></i> Priority Tech Support</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <p style="text-align: center; margin-top: 2rem; font-size: 0.95rem; color: var(--text-muted);">* Lifetime License. No recurring monthly fees. <br><span style="font-size: 0.85rem">(Custom API development for proprietary/legacy HMS software may incur nominal integration charges)</span></p>
+        </div>
+    </section>
+
+    <section id="contact">
+        <div class="contact-bg"></div>
+        <div class="container contact-content reveal">
+            <div class="section-header">
+                <span class="section-badge neutral"><i class="fa-solid fa-headset"></i> Get Started</span>
+                <h2>Ready to Automate Your Lab?</h2>
+                <p>Speak directly with our integration expert to assess your equipment and HMS compatibility.</p>
+            </div>
+
+            <div class="contact-box">
+                <div class="contact-avatar"><i class="fa-solid fa-user-tie"></i></div>
+                <h3>Shiva</h3>
+                <p style="color: var(--text-muted); font-weight: 500;">Lead Integration Specialist @ Newtons AI</p>
+                
+                <div class="contact-actions">
+                    <a href="https://wa.me/916363111328" target="_blank" class="contact-btn whatsapp">
+                        <i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp
+                    </a>
+                    <a href="tel:+916363111328" class="contact-btn phone">
+                        <i class="fa-solid fa-phone-flip"></i> +91 6363111328
+                    </a>
+                    <a href="mailto:shiva@newtons.in" class="contact-btn email">
+                        <i class="fa-regular fa-envelope"></i> shiva@newtons.in
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h3><i class="fa-solid fa-network-wired"></i> Newtons AI</h3>
+                    <p>"Bridging the gap between medical hardware and intelligent software. Zero manual entry. Zero errors."</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Solutions</h4>
+                    <ul class="footer-links">
+                        <li><a href="#features">Lab Middleware</a></li>
+                        <li><a href="#workflow">Bi-Directional LIS</a></li>
+                        <li><a href="#brands">Instrument Interfacing</a></li>
+                        <li><a href="#pricing">Pricing Plans</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact Support</h4>
+                    <ul class="footer-links">
+                        <li><a href="tel:+916363111328"><i class="fa-solid fa-phone" style="font-size:12px;"></i> +91 6363111328</a></li>
+                        <li><a href="mailto:shiva@newtons.in"><i class="fa-solid fa-envelope" style="font-size:12px;"></i> shiva@newtons.in</a></li>
+                        <li><a href="https://newtons.in">Company Website</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                &copy; <span id="year"></span> Newtons AI Middleware. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('year').textContent = new Date().getFullYear();
+
+            const body = document.body;
+            const themeIcon = document.querySelector('.theme-toggle i');
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            function setTheme(dark) {
+                body.classList.toggle('dark-theme', dark);
+                localStorage.setItem('theme', dark ? 'dark' : 'light');
+                if (themeIcon) themeIcon.className = dark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            }
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) setTheme(true);
+
+            document.querySelectorAll('.theme-toggle, #mobile-theme-toggle').forEach(btn => {
+                btn.addEventListener('click', () => setTheme(!body.classList.contains('dark-theme')));
+            });
+
+            const mobileNav = document.querySelector('.mobile-nav');
+            const overlay = document.querySelector('.mobile-overlay');
+
+            function toggleMenu(open) {
+                const isOpen = open !== undefined ? open : !mobileNav.classList.contains('open');
+                mobileNav.classList.toggle('open', isOpen);
+                overlay.classList.toggle('open', isOpen);
+                document.body.style.overflow = isOpen ? 'hidden' : '';
+            }
+
+            document.querySelector('.mobile-toggle')?.addEventListener('click', () => toggleMenu(true));
+            document.querySelector('.close-menu')?.addEventListener('click', () => toggleMenu(false));
+            overlay?.addEventListener('click', () => toggleMenu(false));
+            document.querySelectorAll('.mobile-nav-links a').forEach(link => {
+                link.addEventListener('click', () => toggleMenu(false));
+            });
+
+            const header = document.getElementById('main-header');
+            window.addEventListener('scroll', () => {
+                header.classList.toggle('scrolled', window.scrollY > 50);
+            }, { passive: true });
+
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.nav-links a');
+            const observerNav = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(l => l.classList.remove('active'));
+                        const active = document.querySelector(`.nav-links a[href="#${entry.target.id}"]`);
+                        if (active) active.classList.add('active');
+                    }
+                });
+            }, { rootMargin: '-40% 0px -60% 0px' });
+            sections.forEach(s => observerNav.observe(s));
+
+            const revealObserver = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) entry.target.classList.add('active');
+                });
+            }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+            document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+        });
+
+        function openTab(evt, tabName) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+
+            document.querySelectorAll(`#${tabName} .reveal`).forEach(el => {
+                el.classList.remove('active');
+                requestAnimationFrame(() => { requestAnimationFrame(() => el.classList.add('active')); });
+            });
+        }
+    </script>
+</body>
+</html>
